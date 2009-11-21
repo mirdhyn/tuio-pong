@@ -8,7 +8,7 @@ class Game < Window
     background = Magick::ImageList.new( "media/Space.png").adaptive_resize(WIDTH, HEIGHT)
     @background_image = Image.new(self, background, true) # turn the rmagick image into a Gosu one
     
-    @tuio = TuioClient.new
+    @tuio = TuioClient.new :port => 3000
     @tuio.start
     manage_tuio_events
     
