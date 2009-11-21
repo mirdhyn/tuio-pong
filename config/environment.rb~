@@ -1,0 +1,20 @@
+require 'rubygems'
+require 'gosu'
+require 'chipmunk'
+require 'tuio-ruby'
+require 'RMagick'
+
+require 'lib/dependencity/dependencity.rb'
+require 'lib/ext.rb'
+
+include Gosu
+include CP::Object
+
+loader = Dependencity.new
+#loader.add_rule "touch"
+
+loader.add_dir "app"
+loader.ignore "app/touch.rb"
+loader.ignore "app/level.rb"
+loader.process_directories
+

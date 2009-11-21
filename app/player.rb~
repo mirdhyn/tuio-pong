@@ -1,0 +1,88 @@
+class Player
+  attr_accessor :score,  :rackets
+  
+  def initialize(window)
+    @score = 0
+    @window = window
+    @cursors ={}
+    @orphan_cursor = nil
+    @rackets = []
+  end
+  
+  def add_cursor( cursor )
+    @cursors[cursor.session_id] = TuioCursor.from_params( cursor )
+    if @orphan_cursor != nil
+      @rackets << Racket.new( @orphan_cursor, TuioCursor.from_params( cursor ) )
+      @orphan_cursor = nil
+    else
+      @orphan_cursor = TuioCursor.from_params( cursor )
+    end
+  end
+  
+  def update_cursor( cursor )
+    @cursors[cursor.session_id].update_from_params( cursor )
+    @rackets.each do | racket |
+      racket.update_cursor( cursor ) if racket.has_cursor? cursor.session_id
+    end
+  end
+  
+  def remove_cursor( cursor )
+    @cursors.delete(cursor.session_id)
+    if @orphan_cursor != nil
+      @rackets.each do | racket |
+        racket.update_cursor( cursor.session_id, @orphan_cursor ) if racket.has_cursor? cursor.session_id
+      end
+    else
+      @rackets.delete_if {|racket| racket.has_cursor? cursor.cession_id }
+    end
+  end
+  
+  def has_cursor?( cursor )
+    @cursors.has_key? cursor.session_id
+  end
+  
+  def draw
+    #@window.draw_line(100, 100, Color.new(100,255,255,255),\
+    #                  200,200 , Color.new(100,255,255,255), ZOrder::UI)
+  end
+  
+end
+#
+#
+#
+class Racket
+  attr_reader :x1, :x2, :y1, :y2
+  
+  def initialize( cursor1, cursor2 )
+    @white = Color.new(100,255,255,255)
+    @black = Color.new(255,0,0,0)
+    
+    @cursors = [cursor1, cursor2].sort_by {|c| c.y_pos}
+    update
+  end
+  
+  def update_cursor(new_cursor)
+    @cursors.each do |cursor|
+      cursor = TuioCursor.from_params( new_cursor ) if cursor.session_id == new_cursor.session_id
+    end
+    @cursors = @cursors.sort_by {|c| c.y_pos}
+    update
+  end
+  
+  def update
+    @x1 = @cursors[0].x_pos
+    @y1 = @cursors[0].y_pos
+    @x2 = @cursors[1].x_pos
+    @y2 = @cursors[1].y_pos
+    puts "x1 : #{@x1}, y1 : #{@y1}"
+    puts "x2 : #{@x2}, y2 : #{@y2}"
+  end
+  
+  def has_cursor?( id )
+    if (@cursors.index { |cursor| cursor.session_id == id } )
+      true
+    else
+      false
+    end
+  end
+end

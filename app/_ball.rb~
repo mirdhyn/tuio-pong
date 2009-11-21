@@ -1,0 +1,51 @@
+class Ball
+  attr_reader :shape
+
+  def initialize(window, shape)
+    @image = Gosu::Image.new(window, "media/ball.png", false)
+    @shape = shape
+    @shape.body.p = CP::Vec2.new(0.0, 0.0) # position
+    @shape.body.v = CP::Vec2.new(0.0, 0.0) # velocity
+    
+    # Keep in mind that down the screen is positive y, which means that PI/2 radians,
+    # which you might consider the top in the traditional Trig unit circle sense is actually
+    # the bottom; thus 3PI/2 is the top
+    @shape.body.a = random_radian
+    @shape.body.apply_impulse((@shape.body.a.radians_to_vec2 * 1000.0), CP::Vec2.new(0.0, 0.0))
+  end
+  
+   # Directly set the position of the Ball
+  def warp(vect)
+    @shape.body.p = vect
+  end
+  
+  def update
+    #if (@y - @radius) < 0 || (@y + @radius) > $window.height
+    #  @velocity_y = -@velocity_y
+    #end
+  end
+  
+  def collides?(object2)
+    radius_collision?(object2)
+  end
+    
+  def bounce
+    @velocity_x = -@velocity_x
+    @velocity_y = -@velocity_y
+  end
+  
+  def draw
+    @image.draw_rot(@shape.body.p.x, @shape.body.p.y, 100, @shape.body.a.radians_to_gosu)
+  end
+  
+  private
+  
+  def random_radian # without UP and DOWN for more playability
+    rnd = 30
+    unless ( rnd <= 28 and rnd >= 32 )
+      rnd = rand(36) + 12
+    end
+    rnd/10.0 * Math::PI/2.0
+  end
+  
+end

@@ -1,0 +1,13 @@
+require 'rubygems'
+require 'rubygame'
+require 'tuio-ruby'
+require 'shoulda'
+require 'yaml'
+require 'lib/dependencity/dependencity.rb'
+
+include Rubygame
+#include Rubygame::Events
+#include Rubygame::EventActions
+#include Rubygame::EventTriggers
+
+TTF.setup()

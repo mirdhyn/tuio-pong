@@ -1,0 +1,101 @@
+class Level < Chingu::GameState
+  
+  def initialize(options = {})
+    @white = Color.new(200,255,255,255)
+    super
+  end
+  
+  def setup
+    @players = [Player.new("Player 1"), Player.new("Player 2")]
+                        
+    @ball = Ball.create(:x => ($window.width / 2),\
+                        :y => ($window.height / 2))
+                      
+    @scores = [ Text.create(:text=>@players[0].score.to_s, :x=>20, :y=>10, :size=>30),
+                Text.create(:text=>@players[1].score.to_s, :x=>($window.width - 40), :y=>10, :size=>30) ]
+     
+    @list_racket = []
+               
+    $window.tuio.on_cursor_creation do | c |
+      if c.x_pos * $window.width < ($window.width / 2)
+        @players[0].add_cur( c )
+      else
+        @players[1].add_cur( c )
+      end
+    end
+    
+    $window.tuio.on_cursor_update do | c |
+      # If the cursor go away from player area then destroyed
+      # else updated to the right player cursors list
+
+      if (c.x_pos * $window.width) < ($window.width / 2)
+        if @players[0].cursors.has_key? c.session_id
+          @players[0].update_cur( c )
+        else
+          @players[1].remove_cur( c ) if @players[1].cursors.has_key? c.session_id 
+        end
+      else
+        if @players[1].cursors.has_key? c.session_id
+          @players[1].update_cur( c )
+        else
+          @players[0].remove_cur( c ) if @players[0].cursors.has_key? c.session_id 
+        end
+      end
+      
+    end
+    
+    $window.tuio.on_cursor_removal do | c |
+      if c.x_pos * $window.width < ($window.width / 2)
+        @players[0].remove_cur( c )
+      else
+        @players[1].remove_cur( c )
+      end
+    end
+    
+  end
+
+  def update
+    @players.each do | player |
+      player.cursors.each_value do | c |
+        
+        # Create (each) cursor(s)
+        Particle.create( :x => c.x_pos * $window.width, 
+                          :y => c.y_pos * $window.height,
+                          :image => "media/particle.png", 
+                          :fade_rate => -15,
+                          :color => Color.new(0xFF86EFFF),
+                          :mode => :default
+        )
+      end
+    end
+    
+    if @ball.x < 0 
+      @players[1].score += 1
+      @scores[1].text = @players[1].score.to_s
+      @ball.restart
+    end
+    
+    if @ball.x > $window.width
+      @players[0].score += 1
+      @scores[0].text = @players[0].score.to_s
+      @ball.restart
+    end
+    game_objects.destroy_if { |object| object.outside_window? || object.color.alpha == 0 }
+    
+    @players.each do |p|
+        p.on_collision(@ball) do
+          puts "Collision !"
+          @ball.bounce
+        end
+    end
+    
+    super
+  end
+  
+  def draw
+    # Draw Background and central line
+    $window.draw_line($window.width / 2, 0, @white,\
+                      $window.width / 2,$window.height , @white, -1)
+    super
+  end
+end
